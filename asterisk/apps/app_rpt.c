@@ -20348,7 +20348,8 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		if (myrpt->exttx != lastexttx)
 		{
 			lastexttx = myrpt->exttx;
-			myrpt->keychunked = 1; // Set the repeater to hang after exttx 
+			if (!myrpt->keychunked) // Set the repeater to hang after exttx 
+				myrpt->keychunked = 1;
 			rpt_update_boolean(myrpt,"RPT_ETXKEYED",lastexttx);
 		}
 
