@@ -19978,7 +19978,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			if (myrpt->keyed && myrpt->keychunkcounter < 2499) {
 				myrpt->keychunkcounter++;
 				ast_log(LOG_NOTICE, "Keychunk counting\n");
-			} else if (!myrpt-keyed && myrpt->keychunkcounter != 0) {
+			} else if (!myrpt->keyed && myrpt->keychunkcounter != 0) {
 				ast_log(LOG_NOTICE, "Reset Keychunk counter\n");
 				myrpt->keychunkcounter = 0;
 			} else {
