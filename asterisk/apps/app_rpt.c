@@ -1277,7 +1277,7 @@ static struct rpt
 	pthread_t rpt_call_thread,rpt_thread;
 	time_t dtmf_time,rem_dtmf_time,dtmf_time_rem;
 	int calldigittimer;
-	int keychunk,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
+	int keychunk,keychunkbeep,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
 	int mustid,tailid;
 	int rptinacttimer;
 	int tailevent;
@@ -9838,7 +9838,7 @@ treataslocal:
 
 		if((ct = (char *) ast_variable_retrieve(myrpt->cfg, nodename, "linkunkeyct"))){ /* Unlinked Courtesy Tone */
 			ct_copy = ast_strdup(ct);
-			if(ct_copy){
+			if(ct_copy && myrpt->keychunk){
 				res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
 				ast_free(ct_copy);
 			}
@@ -19989,13 +19989,14 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			if (myrpt->keychunkcounter >= 2500){
 				ast_log(LOG_NOTICE, "Keychunk 1\n");
 				myrpt->keychunk = 1;
+				myrpt->keychunkbeep = 1;
 				if (!myrpt->keychunked){
 					ast_log(LOG_NOTICE, "Keychunked set to 1\n");
 					myrpt->keychunked = 1;
 				}
 			}
 			
-			myrpt->localtx = myrpt->keychunk; /* If sleep disabled, just copy keyed state to localrx */
+			myrpt->localtx = myrpt->keyed; /* If sleep disabled, just copy keyed state to localrx */
 		}
 		/* Create a "must_id" flag for the cleanup ID */		
 		if(myrpt->p.idtime) /* ID time must be non-zero */
@@ -20275,7 +20276,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 
 			lasttx = 0;
 			myrpt->txkeyed = 0;
-			myrpt->keychunked = 0;
+			myrpt->keychunked = 0; // Reset keychunker state
 			time(&myrpt->lasttxkeyedtime);
 			rpt_mutex_unlock(&myrpt->lock);
 			if (strncasecmp(myrpt->txchannel->name,"Zap/Pseudo",10))
