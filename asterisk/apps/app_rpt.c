@@ -19981,7 +19981,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			} else if (!myrpt->keyed && myrpt->keychunkcounter != 0) {
 				ast_log(LOG_NOTICE, "Reset Keychunk counter\n");
 				myrpt->keychunkcounter = 0;
-			} else if (!myrpt->keyed) {
+			} else if (!myrpt->keyed && myrpt->keychunk) {
 				myrpt->keychunk = 0;
 				ast_log(LOG_NOTICE, "Keychunk 0\n");
 			}
@@ -19989,8 +19989,10 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			if (myrpt->keychunkcounter >= 2500){
 				ast_log(LOG_NOTICE, "Keychunk 1\n");
 				myrpt->keychunk = 1;
-				if (!myrpt->keychunked)
+				if (!myrpt->keychunked){
+					ast_log(LOG_NOTICE, "Keychunked set to 1\n");
 					myrpt->keychunked = 1;
+				}
 			}
 			
 			myrpt->localtx = myrpt->keychunk; /* If sleep disabled, just copy keyed state to localrx */
@@ -20154,10 +20156,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		}
 		/* get rid of tail if keychunked, timed out or repeater is beaconing */
 		if (!myrpt->totimer || (!myrpt->mustid && myrpt->p.beaconing)
-		|| !myrpt->keychunked) {
-			myrpt->tailtimer = 0;
-			myrpt->keychunked = 0;
-		}
+		|| !myrpt->keychunked) myrpt->tailtimer = 0;
 		/* if not timed-out, add in tail */
 		if (myrpt->totimer) totx = totx || myrpt->tailtimer;
 		/* If user or links key up or are keyed up over standard ID, switch to talkover ID, if one is defined */
@@ -20276,6 +20275,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 
 			lasttx = 0;
 			myrpt->txkeyed = 0;
+			myrpt->keychunked = 0;
 			time(&myrpt->lasttxkeyedtime);
 			rpt_mutex_unlock(&myrpt->lock);
 			if (strncasecmp(myrpt->txchannel->name,"Zap/Pseudo",10))
