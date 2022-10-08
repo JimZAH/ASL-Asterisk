@@ -9838,7 +9838,7 @@ treataslocal:
 
 		if((ct = (char *) ast_variable_retrieve(myrpt->cfg, nodename, "linkunkeyct"))){ /* Unlinked Courtesy Tone */
 			ct_copy = ast_strdup(ct);
-			if(ct_copy && myrpt->keychunk){
+			if(ct_copy){
 				res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
 				ast_free(ct_copy);
 			}
@@ -10914,7 +10914,7 @@ struct rpt_link *l;
 		{
 			return;
 		}
-		if (myrpt->p.nounkeyct) return;
+		if (myrpt->p.nounkeyct || !myrpt->keychunk) return;
 		/* if any of the following are defined, go ahead and do it,
 		   otherwise, dont bother */
 		v1 = (char *) ast_variable_retrieve(myrpt->cfg, myrpt->name, 
