@@ -81,6 +81,8 @@ idtalkover = |iWB6NIL                   ; Talkover ID (optional) default is none
 idtime = 540000				; id interval time (in ms) (optional) Default 5 minutes (300000 ms)
 politeid = 30000			; time in milliseconds before ID timer expires to try and ID in the tail. (optional, default 30000)
 
+keychunktime = 500                     ; RF Keychunk time in milliseconds(ish)
+
 unlinkedct = ct2			; Send a this courtesy tone when the user unkeys if the node is not connected to any other nodes. (optional, default is none)
 remotect = ct3				; remote linked courtesy tone (indicates a remote is in the list of links)
 linkunkeyct = ct8			; sent when a transmission received over the link unkeys
