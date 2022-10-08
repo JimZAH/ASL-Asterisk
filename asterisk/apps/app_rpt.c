@@ -20160,7 +20160,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		if (!myrpt->totimer || (!myrpt->mustid && myrpt->p.beaconing)
 		|| !myrpt->keychunked) {
 			if (!myrpt->keychunked) 
-				myrpt->tailtimer = -250;
+				myrpt->tailtimer = 10;
 			else 
 				myrpt->tailtimer = 0;
 		}
