@@ -19975,15 +19975,20 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				myrpt->localtx = myrpt->keyed; /* Set localtx to keyed state if awake */
 		}
 		else{
-			if (myrpt->keyed) {
+			if (myrpt->keyed && myrpt->keychunkcounter < 2500) {
 				myrpt->keychunkcounter++;
+				ast_log(LOG_NOTICE, "Keychunk counting\n");
 			} else if (myrpt->keychunkcounter != 0) {
 				myrpt->keychunkcounter = 0;
 			} else {
 				myrpt->keychunk = 0;
+				ast_log(LOG_NOTICE, "Keychunk 0\n");
 			}
-			if (myrpt->keychunkcounter > 2500)
+
+			if (myrpt->keychunkcounter >= 2500){
+				ast_log(LOG_NOTICE, "Keychunk 1\n");
 				myrpt->keychunk = 1;
+			}
 			
 			myrpt->localtx = myrpt->keychunk; /* If sleep disabled, just copy keyed state to localrx */
 		}
