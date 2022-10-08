@@ -1126,6 +1126,7 @@ static struct rpt
 		int althangtime;
 		int totime;
 		int idtime;
+		int keychunktime;
 		int tailmessagetime;
 		int tailsquashedtime;
 		int sleeptime;
@@ -1277,7 +1278,7 @@ static struct rpt
 	pthread_t rpt_call_thread,rpt_thread;
 	time_t dtmf_time,rem_dtmf_time,dtmf_time_rem;
 	int calldigittimer;
-	int keychunk,keychunkbeep,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
+	int keychunk,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
 	int mustid,tailid;
 	int rptinacttimer;
 	int tailevent;
@@ -6241,6 +6242,7 @@ static char *cs_keywords[] = {"rptena","rptdis","apena","apdis","lnkena","lnkdis
 	rpt_vars[n].p.tailsquashedtime = retrieve_astcfgint(&rpt_vars[n],this, "tailsquashedtime", 0, 200000000, 0);		
 	rpt_vars[n].p.duplex = retrieve_astcfgint(&rpt_vars[n],this,"duplex",0,4,(ISRANGER(rpt_vars[n].name) ? 0 : 2));
 	rpt_vars[n].p.idtime = retrieve_astcfgint(&rpt_vars[n],this, "idtime", -60000, 2400000, IDTIME);	/* Enforce a min max including zero */
+	rpt_vars[n].p.keychunktime = retrieve_astcfgint(&rpt_vars[n],this, "keychunktime", 0, 3000, 0);
 	rpt_vars[n].p.politeid = retrieve_astcfgint(&rpt_vars[n],this, "politeid", 30000, 300000, POLITEID); /* Enforce a min max */
 	j  = retrieve_astcfgint(&rpt_vars[n],this, "elke", 0, 40000000, 0);
 	rpt_vars[n].p.elke  = j * 1210;
@@ -19975,7 +19977,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				myrpt->localtx = myrpt->keyed; /* Set localtx to keyed state if awake */
 		}
 		else{
-			if (myrpt->keyed && myrpt->keychunkcounter < 2500) {
+			if (myrpt->keyed && myrpt->keychunkcounter < myrpt->p.keychunktime) {
 				myrpt->keychunkcounter++;
 				ast_log(LOG_NOTICE, "Keychunk counting\n");
 			} else if (!myrpt->keyed && myrpt->keychunkcounter != 0) {
@@ -19986,10 +19988,9 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				ast_log(LOG_NOTICE, "Keychunk 0\n");
 			}
 
-			if (myrpt->keychunkcounter >= 2500){
+			if (myrpt->keychunkcounter >= myrpt->p.keychunktime){
 				ast_log(LOG_NOTICE, "Keychunk 1\n");
 				myrpt->keychunk = 1;
-				myrpt->keychunkbeep = 1;
 				if (!myrpt->keychunked){
 					ast_log(LOG_NOTICE, "Keychunked set to 1\n");
 					myrpt->keychunked = 1;
