@@ -19981,7 +19981,6 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		else{
 			if (myrpt->keyed && myrpt->keychunkcounter < myrpt->p.keychunktime) {
 				myrpt->keychunkcounter++;
-				ast_log(LOG_NOTICE, "Keychunk counting\n");
 			} else if (!myrpt->keyed && myrpt->keychunkcounter != 0) {
 				ast_log(LOG_NOTICE, "Reset Keychunk counter\n");
 				myrpt->keychunkcounter = 0;
@@ -19990,8 +19989,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				ast_log(LOG_NOTICE, "Keychunk 0\n");
 			}
 
-			if (myrpt->keychunkcounter >= myrpt->p.keychunktime){
-				ast_log(LOG_NOTICE, "Keychunk 1\n");
+			if (!myrpt->keychunk && myrpt->keychunkcounter >= myrpt->p.keychunktime){
 				myrpt->keychunk = 1;
 				if (!myrpt->keychunked){
 					ast_log(LOG_NOTICE, "Keychunked set to 1\n");
