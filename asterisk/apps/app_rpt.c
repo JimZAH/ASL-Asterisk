@@ -1277,7 +1277,7 @@ static struct rpt
 	pthread_t rpt_call_thread,rpt_thread;
 	time_t dtmf_time,rem_dtmf_time,dtmf_time_rem;
 	int calldigittimer;
-	int keychunk,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
+	int keychunk,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
 	int mustid,tailid;
 	int rptinacttimer;
 	int tailevent;
@@ -19989,6 +19989,8 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			if (myrpt->keychunkcounter >= 2500){
 				ast_log(LOG_NOTICE, "Keychunk 1\n");
 				myrpt->keychunk = 1;
+				if (!myrpt->keychunked)
+					myrpt->keychunked = 1;
 			}
 			
 			myrpt->localtx = myrpt->keychunk; /* If sleep disabled, just copy keyed state to localrx */
@@ -20152,7 +20154,10 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		}
 		/* get rid of tail if keychunked, timed out or repeater is beaconing */
 		if (!myrpt->totimer || (!myrpt->mustid && myrpt->p.beaconing)
-		|| !myrpt->keychunk) myrpt->tailtimer = 0;
+		|| !myrpt->keychunked) {
+			myrpt->tailtimer = 0;
+			myrpt->keychunked = 0;
+		}
 		/* if not timed-out, add in tail */
 		if (myrpt->totimer) totx = totx || myrpt->tailtimer;
 		/* If user or links key up or are keyed up over standard ID, switch to talkover ID, if one is defined */
