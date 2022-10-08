@@ -9840,6 +9840,8 @@ treataslocal:
 
 		if((ct = (char *) ast_variable_retrieve(myrpt->cfg, nodename, "linkunkeyct"))){ /* Unlinked Courtesy Tone */
 			ct_copy = ast_strdup(ct);
+			if (!myrpt->keychunked) // Set the repeater to hang after exttx 
+				myrpt->keychunked = 1;
 			if(ct_copy){
 				res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
 				ast_free(ct_copy);
@@ -20349,8 +20351,6 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		if (myrpt->exttx != lastexttx)
 		{
 			lastexttx = myrpt->exttx;
-			if (!myrpt->keychunked) // Set the repeater to hang after exttx 
-				myrpt->keychunked = 1;
 			rpt_update_boolean(myrpt,"RPT_ETXKEYED",lastexttx);
 		}
 
