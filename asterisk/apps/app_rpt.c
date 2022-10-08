@@ -1277,7 +1277,7 @@ static struct rpt
 	pthread_t rpt_call_thread,rpt_thread;
 	time_t dtmf_time,rem_dtmf_time,dtmf_time_rem;
 	int calldigittimer;
-	int tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
+	int keychunk,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
 	int mustid,tailid;
 	int rptinacttimer;
 	int tailevent;
@@ -1289,6 +1289,7 @@ static struct rpt
 	long	retxtimer;
 	long	rerxtimer;
 	long long totaltxtime;
+	long keychunkcounter;
 	char mydtmf;
 	char exten[AST_MAX_EXTENSION];
 	char freq[MAXREMSTR],rxpl[MAXREMSTR],txpl[MAXREMSTR];
@@ -19974,7 +19975,17 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				myrpt->localtx = myrpt->keyed; /* Set localtx to keyed state if awake */
 		}
 		else{
-			myrpt->localtx = myrpt->keyed; /* If sleep disabled, just copy keyed state to localrx */
+			if (myrpt->keyed) {
+				myrpt->keychunkcounter++;
+			} else if (myrpt->keychunkcounter != 0) {
+				myrpt->keychunkcounter = 0;
+			} else {
+				myrpt->keychunk = 0;
+			}
+			if (myrpt->keychunkcounter > 2500)
+				myrpt->keychunk = 1;
+			
+			myrpt->localtx = myrpt->keychunk; /* If sleep disabled, just copy keyed state to localrx */
 		}
 		/* Create a "must_id" flag for the cleanup ID */		
 		if(myrpt->p.idtime) /* ID time must be non-zero */
@@ -20133,8 +20144,9 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			myrpt->macropatch=0;
 			channel_revert(myrpt);
 		}
-		/* get rid of tail if timed out or repeater is beaconing */
-		if (!myrpt->totimer || (!myrpt->mustid && myrpt->p.beaconing)) myrpt->tailtimer = 0;
+		/* get rid of tail if keychunked, timed out or repeater is beaconing */
+		if (!myrpt->totimer || (!myrpt->mustid && myrpt->p.beaconing)
+		|| !myrpt->keychunk) myrpt->tailtimer = 0;
 		/* if not timed-out, add in tail */
 		if (myrpt->totimer) totx = totx || myrpt->tailtimer;
 		/* If user or links key up or are keyed up over standard ID, switch to talkover ID, if one is defined */
