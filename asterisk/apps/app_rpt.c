@@ -20158,7 +20158,12 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 		}
 		/* get rid of tail if keychunked, timed out or repeater is beaconing */
 		if (!myrpt->totimer || (!myrpt->mustid && myrpt->p.beaconing)
-		|| !myrpt->keychunked) if (!myrpt->keychunked) myrpt->tailtimer = 250; else myrpt->tailtimer = 0;
+		|| !myrpt->keychunked) {
+			if (!myrpt->keychunked) 
+				myrpt->tailtimer = -250;
+			else 
+				myrpt->tailtimer = 0;
+		}
 		/* if not timed-out, add in tail */
 		if (myrpt->totimer) totx = totx || myrpt->tailtimer;
 		/* If user or links key up or are keyed up over standard ID, switch to talkover ID, if one is defined */
