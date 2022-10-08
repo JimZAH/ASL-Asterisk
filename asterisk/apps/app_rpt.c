@@ -20278,7 +20278,6 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			lasttx = 0;
 			myrpt->txkeyed = 0;
 			myrpt->keychunked = 0; // Reset keychunker state
-			ast_log(LOG_NOTICE, "Keychunked TX reset to 0\n");
 			time(&myrpt->lasttxkeyedtime);
 			rpt_mutex_unlock(&myrpt->lock);
 			if (strncasecmp(myrpt->txchannel->name,"Zap/Pseudo",10))
