@@ -19992,8 +19992,8 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			if (!myrpt->keychunk && myrpt->keychunkcounter >= myrpt->p.keychunktime){
 				myrpt->keychunk = 1;
 				if (!myrpt->keychunked){
-					ast_log(LOG_NOTICE, "Keychunked set to 1\n");
-					myrpt->keychunked = 1;
+				ast_log(LOG_NOTICE, "Keychunked set to 1\n");
+				myrpt->keychunked = 1;
 				}
 			}
 			
