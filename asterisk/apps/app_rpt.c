@@ -20012,11 +20012,13 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				myrpt->tailpipcount++;
 				ast_log(LOG_NOTICE, "tail pip\n");
 				if (myrpt->tailpipcount <= myrpt->p.tailpip) {
+					ast_channel mychannel = ast_request(DAHDI_CHANNEL_NAME,AST_FORMAT_SLINEAR,"pseudo",NULL);
 					// play tone
-					char* ct = ast_variable_retrieve(myrpt->cfg, nodename, "tailpipbeep");
+					char* ct;
+					strcpy(ct, "i|e");
 					ct_copy = ast_strdup(ct);
 					if(ct_copy)
-						res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
+						int res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
 						ast_log(LOG_NOTICE, "tail pip play\n");
 					ast_free(ct_copy);
 					}		
