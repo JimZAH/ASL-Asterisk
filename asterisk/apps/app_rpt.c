@@ -1127,6 +1127,7 @@ static struct rpt
 		int totime;
 		int idtime;
 		int keychunktime;
+		int tailpip;
 		int tailmessagetime;
 		int tailsquashedtime;
 		int sleeptime;
@@ -1278,7 +1279,7 @@ static struct rpt
 	pthread_t rpt_call_thread,rpt_thread;
 	time_t dtmf_time,rem_dtmf_time,dtmf_time_rem;
 	int calldigittimer;
-	int keychunk,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
+	int tailpipcount,keychunk,keychunked,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
 	int mustid,tailid;
 	int rptinacttimer;
 	int tailevent;
@@ -1291,6 +1292,7 @@ static struct rpt
 	long	rerxtimer;
 	long long totaltxtime;
 	long keychunkcounter;
+	long long tailpipcounter;
 	char mydtmf;
 	char exten[AST_MAX_EXTENSION];
 	char freq[MAXREMSTR],rxpl[MAXREMSTR],txpl[MAXREMSTR];
@@ -6243,6 +6245,7 @@ static char *cs_keywords[] = {"rptena","rptdis","apena","apdis","lnkena","lnkdis
 	rpt_vars[n].p.duplex = retrieve_astcfgint(&rpt_vars[n],this,"duplex",0,4,(ISRANGER(rpt_vars[n].name) ? 0 : 2));
 	rpt_vars[n].p.idtime = retrieve_astcfgint(&rpt_vars[n],this, "idtime", -60000, 2400000, IDTIME);	/* Enforce a min max including zero */
 	rpt_vars[n].p.keychunktime = retrieve_astcfgint(&rpt_vars[n],this, "keychunktime", 0, 3000, 0);
+	rpt_vars[n].p.tailpip = retrieve_astcfgint(&rpt_vars[n],this, "tailpip", 0, 10, 0);
 	rpt_vars[n].p.politeid = retrieve_astcfgint(&rpt_vars[n],this, "politeid", 30000, 300000, POLITEID); /* Enforce a min max */
 	j  = retrieve_astcfgint(&rpt_vars[n],this, "elke", 0, 40000000, 0);
 	rpt_vars[n].p.elke  = j * 1210;
@@ -19983,6 +19986,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				myrpt->keychunkcounter++;
 			} else if (!myrpt->keyed && myrpt->keychunkcounter != 0) {
 				ast_log(LOG_NOTICE, "Reset Keychunk counter\n");
+				myrpt->tailpipcounter = 0;
 				myrpt->keychunkcounter = 0;
 			} else if (!myrpt->keyed && myrpt->keychunk) {
 				myrpt->keychunk = 0;
@@ -19998,6 +20002,25 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			}
 			
 			myrpt->localtx = myrpt->keyed; /* If sleep disabled, just copy keyed state to localrx */
+		}
+		/* If tailpips enabled */
+		if (myrpt->p.tailpip && myrpt->keychunk && !myrpt->keyed && !myrpt->exttx){
+			myrpt->tailpipcounter++;
+			ast_log(LOG_NOTICE, "tailpipc\n");
+			if (myrpt->tailpipcounter > 1200) {
+				myrpt->tailpipcounter = 0;
+				myrpt->tailpipcount++;
+				ast_log(LOG_NOTICE, "tail pip\n");
+				if (myrpt->tailpipcount <= myrpt->p.tailpip) {
+					// play tone
+					char* ct = ast_variable_retrieve(myrpt->cfg, nodename, "tailpipbeep");
+					ct_copy = ast_strdup(ct);
+					if(ct_copy)
+						res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
+						ast_log(LOG_NOTICE, "tail pip play\n");
+					ast_free(ct_copy);
+					}		
+			}
 		}
 		/* Create a "must_id" flag for the cleanup ID */		
 		if(myrpt->p.idtime) /* ID time must be non-zero */
