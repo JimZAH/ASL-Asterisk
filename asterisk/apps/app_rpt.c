@@ -20010,7 +20010,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 						myrpt->tailpipc=0;
 					}
 					ast_log(LOG_NOTICE, "Sending tail pip\n");
-					rpt_telemetry(myrpt, LOCUNKEY, NULL);
+					rpt_telemetry(myrpt, UNKEY, NULL);
 				}
 			}
 		}
