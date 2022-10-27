@@ -20002,7 +20002,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			
 			myrpt->localtx = myrpt->keyed; /* If sleep disabled, just copy keyed state to localrx */
 			
-			if (myrpt->p.tailpiptime && myrpt->keychunked && myrpt->txkeyed && !myrpt->keyed && !myrpt->remrx && !myrpt->tailpippending) {
+			if (myrpt->p.tailpiptime && myrpt->tailpippending && myrpt->keychunked && myrpt->txkeyed && !myrpt->keyed && !myrpt->remrx) {
 				myrpt->tailpiptimer++;
 				if (myrpt->tailpiptimer >= 1500){
 					myrpt->tailpiptimer=0;
