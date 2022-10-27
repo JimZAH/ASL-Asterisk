@@ -1279,7 +1279,7 @@ static struct rpt
 	pthread_t rpt_call_thread,rpt_thread;
 	time_t dtmf_time,rem_dtmf_time,dtmf_time_rem;
 	int calldigittimer;
-	int keychunk,keychunked,tailpiptimer,tailpipc,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
+	int keychunk,keychunked,tailpiptimer,tailpipc,tailpippending,tailtimer,totimer,idtimer,txconf,conf,callmode,cidx,scantimer,tmsgtimer,skedtimer,linkactivitytimer,elketimer;
 	int mustid,tailid;
 	int rptinacttimer;
 	int tailevent;
@@ -19996,23 +19996,26 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				if (!myrpt->keychunked){
 				ast_log(LOG_NOTICE, "Keychunked set to 1\n");
 				myrpt->keychunked = 1;
+				myrpt->tailpippending = 1;
 				}
 			}
 			
 			myrpt->localtx = myrpt->keyed; /* If sleep disabled, just copy keyed state to localrx */
 			
-			if (myrpt->p.tailpiptime && myrpt->keychunked &&!myrpt->keyed && !myrpt->remrx) {
+			if (myrpt->p.tailpiptime && myrpt->keychunked && myrpt->txkeyed && !myrpt->keyed && !myrpt->remrx && !myrpt->tailpippending) {
 				myrpt->tailpiptimer++;
 				if (myrpt->tailpiptimer >= 1500){
 					myrpt->tailpiptimer=0;
 					myrpt->tailpipc++;
 					if (myrpt->tailpipc >= myrpt->p.tailpiptime){
 						myrpt->tailpipc=0;
+						myrpt->tailpippending=0;
+					} else {
+						ast_log(LOG_NOTICE, "Sending tail pip\n");
+						myrpt->keychunk = 1;
+						rpt_telemetry(myrpt, UNKEY, NULL);
+						myrpt->keychunk = 0;	
 					}
-					ast_log(LOG_NOTICE, "Sending tail pip\n");
-					myrpt->keychunk = 1;
-					rpt_telemetry(myrpt, UNKEY, NULL);
-					myrpt->keychunk = 0;
 				}
 			}
 		}
