@@ -9844,6 +9844,7 @@ treataslocal:
 			ct_copy = ast_strdup(ct);
 			if (!myrpt->keychunked){  // Set the repeater to hang after exttx 
 				myrpt->keychunked = 1;
+				myrpt->tailpipc = 0;
 				myrpt->tailpippending = 1;
 			}
 			if(ct_copy){
