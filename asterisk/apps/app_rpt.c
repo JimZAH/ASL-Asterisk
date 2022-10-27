@@ -20003,7 +20003,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			
 			if (myrpt->p.tailpiptime && myrpt->keychunked &&!myrpt->keyed && !myrpt->remrx) {
 				myrpt->tailpiptimer++;
-				if (myrpt->tailpiptimer => 1200){
+				if (myrpt->tailpiptimer >= 1200){
 					myrpt->tailpiptimer=0;
 					myrpt->tailpipc++;
 					if (myrpt->tailpipc >= myrpt->p.tailpiptime){
