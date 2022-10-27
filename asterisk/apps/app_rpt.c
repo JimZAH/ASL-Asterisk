@@ -9842,8 +9842,10 @@ treataslocal:
 
 		if((ct = (char *) ast_variable_retrieve(myrpt->cfg, nodename, "linkunkeyct"))){ /* Unlinked Courtesy Tone */
 			ct_copy = ast_strdup(ct);
-			if (!myrpt->keychunked) // Set the repeater to hang after exttx 
+			if (!myrpt->keychunked){  // Set the repeater to hang after exttx 
 				myrpt->keychunked = 1;
+				myrpt->tailpippending = 1;
+			}
 			if(ct_copy){
 				res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
 				ast_free(ct_copy);
@@ -19986,6 +19988,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			} else if (!myrpt->keyed && myrpt->keychunkcounter != 0) {
 				ast_log(LOG_NOTICE, "Reset Keychunk counter\n");
 				myrpt->keychunkcounter = 0;
+				myrpt->tailpipc = 0;
 			} else if (!myrpt->keyed && myrpt->keychunk) {
 				myrpt->keychunk = 0;
 				ast_log(LOG_NOTICE, "Keychunk 0\n");
@@ -20008,7 +20011,6 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 					myrpt->tailpiptimer=0;
 					myrpt->tailpipc++;
 					if (myrpt->tailpipc >= myrpt->p.tailpiptime){
-						myrpt->tailpipc=0;
 						myrpt->tailpippending=0;
 					} else {
 						ast_log(LOG_NOTICE, "Sending tail pip\n");
