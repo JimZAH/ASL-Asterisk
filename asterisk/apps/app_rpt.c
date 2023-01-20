@@ -1237,6 +1237,8 @@ static struct rpt
 	int unkeytocttimer;
 	time_t lastkeyedtime;
 	time_t lasttxkeyedtime;
+	time_t prevlastkeyed;
+	time_t lastpiptime;
 	char keyed;
 	char txkeyed;
 	char rxchankeyed;					/*!< \brief Receiver RxChan Key State */
@@ -8634,6 +8636,9 @@ static int telem_any(struct rpt *myrpt,struct ast_channel *chan, char *entry)
 			c -= 0x20;
 	
 		switch(c){
+			case 'C': /* Close Down ID */
+				res = send_morse(chan, entry + 2, morsespeed, 1750, morseidampl/2);
+				break;
 			case 'I': /* Morse ID */
 				res = send_morse(chan, entry + 2, morsespeed, morseidfreq, morseidampl);
 				break;
@@ -9325,8 +9330,14 @@ struct	mdcparams *mdcp;
 	    case TAILMSG:
 		/* wait a little bit longer */
 		if (!wait_interval(myrpt, DLY_TELEM, mychannel))
-			res = ast_streamfile(mychannel, myrpt->p.tailmessages[myrpt->tailmessagen], mychannel->language); 
-		break;
+			
+			p = (char *) ast_variable_retrieve(myrpt->cfg, nodename, "idclosedown");
+			if (p){
+				res = telem_any(myrpt, mychannel, p);
+			} else {
+				res = ast_streamfile(mychannel, myrpt->p.tailmessages[myrpt->tailmessagen], mychannel->language); 
+			}
+			break;
 
 	    case IDTALKOVER:
 		if(debug >= 6)
@@ -9844,9 +9855,12 @@ treataslocal:
 			ct_copy = ast_strdup(ct);
 			if (!myrpt->keychunked){  // Set the repeater to hang after exttx 
 				myrpt->keychunked = 1;
-				myrpt->tailpipc = 0;
-				myrpt->tailpippending = 1;
 			}
+			
+			time(&myrpt->lastpiptime);
+			myrpt->tailpipc = 0;
+			myrpt->tailpippending = 1;
+
 			if(ct_copy){
 				res = telem_lookup(myrpt,mychannel, myrpt->name, ct_copy);
 				ast_free(ct_copy);
@@ -10917,13 +10931,22 @@ struct rpt_link *l;
 		if (myrpt->telemmode < 2) return; 
 		break;
 	    case UNKEY:
-	    case LOCUNKEY:
-		/* if voting and the main rx unkeys but a voter link is still active */
-		if(myrpt->p.votertype==1 && (myrpt->rxchankeyed || myrpt->voteremrx ))
-		{
-			return;
+	    case LOCUNKEY:;
+  		time_t noweet;
+		time(&noweet);
+		myrpt->lastpiptime = noweet;
+		/* If the station keys too quickly log for now */
+		if (noweet - myrpt->prevlastkeyed < 3000) { 
+			ast_log(LOG_NOTICE,"POLICE_KEY\n");
+			//break;
 		}
-		if (myrpt->p.nounkeyct || !myrpt->keychunk) return;
+			//send_morse(chan, naughty + 2, morsespeed, 1750, morseidampl/2);
+		/* if voting and the main rx unkeys but a voter link is still active */
+		//if(myrpt->p.votertype==1 && (myrpt->rxchankeyed || myrpt->voteremrx ))
+		//{
+		//	return;
+		//}
+		if (myrpt->p.nounkeyct) return; //|| !myrpt->keychunk) return;
 		/* if any of the following are defined, go ahead and do it,
 		   otherwise, dont bother */
 		v1 = (char *) ast_variable_retrieve(myrpt->cfg, myrpt->name, 
@@ -19990,6 +20013,7 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 				ast_log(LOG_NOTICE, "Reset Keychunk counter\n");
 				myrpt->keychunkcounter = 0;
 				myrpt->tailpipc = 0;
+				myrpt->tailpippending = 1;
 			} else if (!myrpt->keyed && myrpt->keychunk) {
 				myrpt->keychunk = 0;
 				ast_log(LOG_NOTICE, "Keychunk 0\n");
@@ -20008,7 +20032,10 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			
 			if (myrpt->p.tailpiptime && myrpt->tailpippending && myrpt->keychunked && myrpt->txkeyed && !myrpt->keyed && !myrpt->remrx) {
 				myrpt->tailpiptimer++;
-				if (myrpt->tailpiptimer >= 1500){
+				time_t nowpip;
+				time(&nowpip);
+				if (nowpip - myrpt->lastpiptime >= 3){
+					//myrpt->lastpiptime = nowpip;
 					myrpt->tailpiptimer=0;
 					myrpt->tailpipc++;
 					if (myrpt->tailpipc >= myrpt->p.tailpiptime){
@@ -21403,6 +21430,8 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 					send_link_pl(myrpt,"0");
 					myrpt->reallykeyed = 0;
 					myrpt->keyed = 0;
+					/* store unkeyed time */
+					time(&myrpt->prevlastkeyed);
 					if ((myrpt->p.duplex > 1) && (!asleep) && myrpt->localoverride)
 					{
 						rpt_telemetry(myrpt,LOCUNKEY,NULL);
