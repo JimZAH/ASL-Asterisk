@@ -1125,6 +1125,7 @@ static struct rpt
 		int hangtime;
 		int althangtime;
 		int keychunktime;
+		int txpip;
 		int totime;
 		int idtime;
 		int tailmessagetime;
@@ -6234,6 +6235,9 @@ static char *cs_keywords[] = {"rptena","rptdis","apena","apdis","lnkena","lnkdis
 	if (val) rpt_vars[n].p.hangtime = atoi(val);
 		else rpt_vars[n].p.hangtime = (ISRANGER(rpt_vars[n].name) ? 1 : HANGTIME);
 	if (rpt_vars[n].p.hangtime < 1) rpt_vars[n].p.hangtime = 1;
+	val = (char *) ast_variable_retrieve(cfg,this,"txpip");
+	if (val) rpt_vars[n].p.txpip = atoi(val);
+		else rpt_vars[n].p.txpip = 0;
 	val = (char *) ast_variable_retrieve(cfg,this,"althangtime");
 	if (val) rpt_vars[n].p.althangtime = atoi(val);
 		else rpt_vars[n].p.althangtime = (ISRANGER(rpt_vars[n].name) ? 1 : HANGTIME);
@@ -20290,6 +20294,12 @@ char tmpstr[512],lstr[MAXLINKLIST],lat[100],lon[100],elev[100];
 			if (myrpt->monstream) ast_closestream(myrpt->monstream);
 			myrpt->monstream = NULL;
 
+			/* txpip */
+			if ((myrpt->p.txpip && myrpt->keychunked) && myrpt->mustid) {
+				rpt_mutex_unlock(&myrpt->lock);
+				rpt_telemetry(myrpt, LINKUNKEY, NULL);
+				rpt_mutex_lock(&myrpt->lock);
+			}
 			lasttx = 0;
 			myrpt->txkeyed = 0;
 			myrpt->keychunked = 0;
